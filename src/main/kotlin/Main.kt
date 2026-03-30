@@ -15,7 +15,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import java.io.File
-import javax.xml.catalog.CatalogManager.catalog
 
 data class KargoConfig(val versionCatalog: String)
 
@@ -150,14 +149,14 @@ class Add : SuspendingCliktCommand() {
         if (v == "@latest") {
             val latestVersion = fetchLatestVersion(g, a)
             val reference = if (ref != null) {
-                resolveExplicitRef(ref!!, catalog, latestVersion.v)
+                resolveExplicitRef(ref!!)
             } else {
                 suggestAndSelectRef(g, a, catalog)
             }
             addCatalogEntry(latestVersion.g, latestVersion.a, reference, latestVersion.v)
         } else {
             val reference = if (ref != null) {
-                resolveExplicitRef(ref!!, catalog, v)
+                resolveExplicitRef(ref!!)
             } else {
                 suggestAndSelectRef(g, a, catalog)
             }
@@ -171,7 +170,7 @@ class Add : SuspendingCliktCommand() {
         val preferredVersion by lazy { selectVersion(versions) }
 
         val reference = if (ref != null) {
-            resolveExplicitRef(ref!!, catalog, preferredVersion)
+            resolveExplicitRef(ref!!)
         } else {
             suggestAndSelectRef(g, a, catalog)
         }
@@ -198,14 +197,7 @@ class Add : SuspendingCliktCommand() {
             ?: error("No version selected")
     }
 
-    private fun resolveExplicitRef(ref: String, catalog: VersionCatalog, preferredVersion: String): String {
-        if (!catalog.versions.containsKey(ref)) {
-            t.println(
-                "Version reference $ref does not exist in the catalog. Which version do you want to use?",
-                stderr = true
-            )
-            return preferredVersion
-        }
+    private fun resolveExplicitRef(ref: String): String {
         return ref
     }
 
@@ -223,10 +215,11 @@ class Add : SuspendingCliktCommand() {
     }
 
     private fun selectRefFromOptions(allSuggested: Set<String>, filtered: List<String>?, catalog: VersionCatalog): String {
-        val options = filtered ?: allSuggested.toList()
+        val options = (filtered?.toSet() ?: emptySet()) + allSuggested
         val selected = t.interactiveSelectList {
+            title("Select a version reference")
             options.forEach {
-                if (filtered != null) {
+                if (catalog.versions.containsKey(it)) {
                     addEntry(it, TextColors.gray(catalog.versions[it] ?: "Unknown Version"))
                 } else {
                     addEntry(it)
@@ -236,7 +229,7 @@ class Add : SuspendingCliktCommand() {
         } ?: error("No version reference selected")
 
         return if (selected == "- Choose your own") {
-            t.prompt("What version reference name do you want to use for this package?: ")
+            t.prompt("What version reference name do you want to use for this package?")
                 ?: error("No version reference name provided")
         } else {
             selected
