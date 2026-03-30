@@ -15,6 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import java.io.File
+import javax.xml.catalog.CatalogManager.catalog
 
 data class KargoConfig(val versionCatalog: String)
 
@@ -124,15 +125,7 @@ class Add : SuspendingCliktCommand() {
 
     private val config by requireObject<KargoConfig>()
     private val dependency by argument(
-        "package", help = """
-        The package name or search query. Ambitious queries will search the Maven Central index.
-        
-        Example:
-            org.example:lib1:1.0.0 --> No search occurs
-            mylib --> Search for "mylib" in the Maven Central index, then select the version.
-            org.example:lib2 --> Retrieve versions of "org.example:lib2" from the Maven Central index, then select the version.
-            org.example:lib3:@latest --> Retrieve the latest version of "org.example:lib3" from the Maven Central index.
-    """.trimIndent()
+        "package", help = "The package name or search query."
     )
     private val ref by option(
         "-r",
@@ -147,18 +140,28 @@ class Add : SuspendingCliktCommand() {
         val catalog = getCatalog(config.versionCatalog)
 
         when (parts.size) {
-            3 -> handleThreeParts(parts)
+            3 -> handleThreeParts(parts, catalog)
             2 -> handleTwoParts(parts, catalog)
         }
     }
 
-    private suspend fun handleThreeParts(parts: List<String>) {
+    private suspend fun handleThreeParts(parts: List<String>, catalog: VersionCatalog) {
         val (g, a, v) = parts
         if (v == "@latest") {
             val latestVersion = fetchLatestVersion(g, a)
-            addCatalogEntry(latestVersion.g, latestVersion.a, latestVersion.v)
+            val reference = if (ref != null) {
+                resolveExplicitRef(ref!!, catalog, latestVersion.v)
+            } else {
+                suggestAndSelectRef(g, a, catalog)
+            }
+            addCatalogEntry(latestVersion.g, latestVersion.a, reference, latestVersion.v)
         } else {
-            addCatalogEntry(g, a, v)
+            val reference = if (ref != null) {
+                resolveExplicitRef(ref!!, catalog, v)
+            } else {
+                suggestAndSelectRef(g, a, catalog)
+            }
+            addCatalogEntry(g, a, reference,v)
         }
     }
 
