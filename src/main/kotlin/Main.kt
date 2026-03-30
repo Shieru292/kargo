@@ -141,6 +141,7 @@ class Add : SuspendingCliktCommand() {
         when (parts.size) {
             3 -> handleThreeParts(parts, catalog)
             2 -> handleTwoParts(parts, catalog)
+            1 -> handleOnePart(parts, catalog)
         }
     }
 
@@ -180,6 +181,20 @@ class Add : SuspendingCliktCommand() {
         } else {
             addCatalogEntry(g, a, reference)
         }
+    }
+
+    private suspend fun handleOnePart(parts: List<String>, catalog: VersionCatalog) {
+        val (query) = parts
+        val response = mavenCentralClient.searchMavenByText(query)
+        val docs = response.response.docs
+        val selectedDoc = t.interactiveSelectList {
+            title("Search results for $query")
+            docs.forEach {
+                addEntry("${it.g}:${it.a}", TextColors.brightGreen("Latest: ${it.latestVersion}, Released at ${it.toInstant()}"))
+            }
+        } ?: error("No package selected")
+        val (g, a) = selectedDoc.split(":")
+        handleTwoParts(listOf(g, a), catalog)
     }
 
     private suspend fun fetchLatestVersion(g: String, a: String): MavenGavDocument {
