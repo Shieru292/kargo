@@ -253,7 +253,7 @@ class Add : SuspendingCliktCommand() {
 
         val groovySnippet = """
             dependencies {
-                implementation "kargo.${alias.toAccessor()}"
+                implementation kargo.${alias.toAccessor()}
             }
         """.trimIndent()
         val kotlinSnippet = """
