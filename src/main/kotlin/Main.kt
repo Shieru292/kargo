@@ -240,6 +240,27 @@ class Add : SuspendingCliktCommand() {
         }
     }
 
+    private fun gradleImplementationSnippet(alias: String) {
+        fun String.toAccessor() =
+            replace(":", ".").replace("-", ".").replace("_", ".")
+
+        val groovySnippet = """
+            dependencies {
+                implementation "kargo.${alias.toAccessor()}"
+            }
+        """.trimIndent()
+        val kotlinSnippet = """
+            dependencies {
+                implementation(kargo.${alias.toAccessor()})
+            }
+        """.trimIndent()
+        t.println(TextColors.gray("build.gradle (Groovy):"))
+        t.println(TextColors.brightYellow(groovySnippet))
+        t.println()
+        t.println(TextColors.gray("build.gradle.kts (Kotlin):"))
+        t.println(TextColors.brightYellow(kotlinSnippet))
+    }
+
     suspend fun addCatalogEntry(g: String, a: String, ref: String, version: String? = null) {
         val catalog = getCatalog(config.versionCatalog).run {
             if (!this.versions.containsKey(ref)) {
@@ -264,6 +285,10 @@ class Add : SuspendingCliktCommand() {
             append(rawToml)
         }
         File(config.versionCatalog).writeText(toml)
+
+        println(TextColors.brightGreen("Added $g:$a (ref: $ref, version: ${catalog.resolver().resolveVersion(ref)}) to the version catalog."))
+        println(TextColors.brightGreen("To use this dependency, add the following snippet to your build.gradle(.kts):"))
+        gradleImplementationSnippet(a)
     }
 
 }

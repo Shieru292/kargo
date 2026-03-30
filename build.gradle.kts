@@ -2,6 +2,7 @@ plugins {
     application
     kotlin("jvm") version "2.3.10"
     kotlin("plugin.serialization") version "2.3.10"
+    id("org.graalvm.buildtools.native") version "1.0.0"
 }
 
 group = "net.shieru"
@@ -26,7 +27,7 @@ dependencies {
     implementation("org.slf4j:slf4j-nop:2.0.12")
     implementation("com.github.ajalt.mordant:mordant:3.0.2")
     implementation("io.ktor:ktor-client-core:${ktorVersion}")
-    implementation("io.ktor:ktor-client-cio:${ktorVersion}")
+    implementation("io.ktor:ktor-client-java:${ktorVersion}")
     implementation("io.ktor:ktor-client-content-negotiation:${ktorVersion}")
     implementation("io.ktor:ktor-serialization-kotlinx-json:${ktorVersion}")
     implementation("com.github.ajalt.clikt:clikt:5.1.0")
@@ -37,7 +38,21 @@ dependencies {
 }
 
 kotlin {
-    jvmToolchain(25)
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(25))
+        vendor.set(JvmVendorSpec.GRAAL_VM)
+    }
+}
+
+graalvmNative {
+    binaries {
+        named("main") {
+            javaLauncher.set(javaToolchains.launcherFor {
+                languageVersion.set(JavaLanguageVersion.of(25))
+                vendor.set(JvmVendorSpec.GRAAL_VM)
+            })
+        }
+    }
 }
 
 tasks.test {

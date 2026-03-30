@@ -20,6 +20,7 @@ data class VersionCatalog(
 @TomlInlineTable
 data class Module(val group: String, val name: String, val version: Version)
 
+
 @Serializable
 data class Version(val ref: String)
 

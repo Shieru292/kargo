@@ -1,11 +1,9 @@
 package net.shieru.kargo
 
 import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.engine.cio.*
-import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.engine.java.*
 import io.ktor.client.request.*
-import io.ktor.serialization.kotlinx.json.*
+import io.ktor.client.statement.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlin.time.Instant
@@ -44,32 +42,30 @@ data class MavenGavDocument(
 
 
 class MavenCentralClient {
-    val client = HttpClient(CIO) {
-        install(ContentNegotiation) {
-            json(
-                Json {
-                    ignoreUnknownKeys = true
-                })
-        }
+    val client = HttpClient(Java)
+    private val json = Json {
+        ignoreUnknownKeys = true
     }
 
     private val baseUrl = "https://search.maven.org"
 
     suspend fun searchMavenByText(query: String): MavenSearchResponse {
-        return client.get("$baseUrl/solrsearch/select") {
+        val responseText = client.get("$baseUrl/solrsearch/select") {
             parameter("q", query)
             parameter("rows", 10)
             parameter("wt", "json")
-        }.body<MavenSearchResponse>()
+        }.bodyAsText()
+        return json.decodeFromString(MavenSearchResponse.serializer(), responseText)
     }
 
     suspend fun searchVersionsGav(g: String, a: String): MavenGavAPIResponse {
-        return client.get("$baseUrl/solrsearch/select") {
+        val responseText = client.get("$baseUrl/solrsearch/select") {
             parameter("q", "g:$g AND a:$a")
             parameter("core", "gav")
             parameter("rows", 10)
             parameter("wt", "json")
-        }.body<MavenGavAPIResponse>()
+        }.bodyAsText()
+        return json.decodeFromString(MavenGavAPIResponse.serializer(), responseText)
     }
 
     fun close() {
