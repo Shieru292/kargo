@@ -21,19 +21,15 @@ tasks.named<JavaExec>("run") {
     standardInput = System.`in`
 }
 
-val ktorVersion = "3.4.1"
-
 dependencies {
-    implementation("org.slf4j:slf4j-nop:2.0.12")
-    implementation("com.github.ajalt.mordant:mordant:3.0.2")
-    implementation("io.ktor:ktor-client-core:${ktorVersion}")
-    implementation("io.ktor:ktor-client-java:${ktorVersion}")
-    implementation("io.ktor:ktor-client-content-negotiation:${ktorVersion}")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:${ktorVersion}")
-    implementation("com.github.ajalt.clikt:clikt:5.1.0")
-    implementation("com.akuleshov7:ktoml-core:0.7.1")
-    implementation("com.akuleshov7:ktoml-file:0.7.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.0")
+    implementation(kargo.slf4j.nop)
+    implementation(kargo.mordant)
+    implementation(kargo.ktor.client.core)
+    implementation(kargo.ktor.client.java)
+    implementation(kargo.clikt)
+    implementation(kargo.ktoml.core)
+    implementation(kargo.ktoml.file)
+    implementation(kargo.kotlinx.serialization.json)
     testImplementation(kotlin("test"))
 }
 
