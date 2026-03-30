@@ -38,7 +38,7 @@ jobs:
       - name: Prepare Artifact (Windows)
         if: runner.os == 'Windows'
         run: |
-          Rename-Item -Path "build\native\nativeCompile\kargo.exe" -NewName "kargo-Windows-x64.exe"
+          Move-Item -Path "build\native\nativeCompile\kargo.exe" -Destination "kargo-Windows-x64.exe"
           Compress-Archive -Path "kargo-Windows-x64.exe" -DestinationPath "kargo-Windows-x64.zip"
 
       - name: Upload Artifact
