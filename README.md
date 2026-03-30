@@ -4,7 +4,7 @@ A simple CLI tool for managing Gradle Version Catalogs.
 
 ## Installation
 
-(WIP)
+Prebuilt binaries for Windows, macOS, and Linux are available on the [Releases](https://github.com/Shieru292/kargo/releases) page.
 
 ## Usage
 

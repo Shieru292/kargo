@@ -4,7 +4,7 @@ Gradle バージョンカタログを管理するシンプルなCLIツール。
 
 ## インストール
 
-(WIP)
+[Releases](https://github.com/Shieru292/kargo/releases) に、Windows / macOS / Linux 用ビルドがあります。
 
 ## 使い方
 
