@@ -47,7 +47,7 @@ class MavenCentralClient {
         ignoreUnknownKeys = true
     }
 
-    private val baseUrl = "https://search.maven.org"
+    private val baseUrl = "https://central.sonatype.com"
 
     suspend fun searchMavenByText(query: String): MavenSearchResponse {
         val responseText = client.get("$baseUrl/solrsearch/select") {
@@ -62,8 +62,9 @@ class MavenCentralClient {
         val responseText = client.get("$baseUrl/solrsearch/select") {
             parameter("q", "g:$g AND a:$a")
             parameter("core", "gav")
-            parameter("rows", 10)
+            parameter("rows", 15)
             parameter("wt", "json")
+            parameter("sort", "v desc")
         }.bodyAsText()
         return json.decodeFromString(MavenGavAPIResponse.serializer(), responseText)
     }
