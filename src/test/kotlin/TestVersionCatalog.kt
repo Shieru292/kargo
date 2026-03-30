@@ -1,7 +1,6 @@
 import net.shieru.kargo.Resolver
 import net.shieru.kargo.VersionCatalog
 import kotlin.test.Test
-import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 
 class TestVersionCatalog {
