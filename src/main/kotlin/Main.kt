@@ -16,7 +16,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import java.io.File
 
-data class KargoConfig(val versionCatalog: String)
+data class KargoContext(val versionCatalog: String)
 
 val t = Terminal()
 
@@ -36,12 +36,12 @@ class Kargo : SuspendingCliktCommand() {
     ).default(System.getenv("KARGO_CONFIG") ?: "gradle/kargo.versions.toml")
 
     override suspend fun run() {
-        currentContext.obj = KargoConfig(config)
+        currentContext.obj = KargoContext(config)
     }
 }
 
 class Init : SuspendingCliktCommand() {
-    private val config by requireObject<KargoConfig>()
+    private val config by requireObject<KargoContext>()
     private val force by option(
         "-f",
         "--force",
@@ -118,7 +118,7 @@ class Add : SuspendingCliktCommand() {
         Add a new library to the version catalog.
     """.trimIndent()
 
-    private val config by requireObject<KargoConfig>()
+    private val config by requireObject<KargoContext>()
     private val dependency by argument(
         "package", help = "The package name or search query."
     )
