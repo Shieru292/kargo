@@ -143,20 +143,15 @@ class Add : SuspendingCliktCommand() {
 
     private suspend fun handleThreeParts(parts: List<String>, catalog: VersionCatalog) {
         val (g, a, v) = parts
+        val reference = if (ref != null) {
+            resolveExplicitRef(ref!!)
+        } else {
+            suggestAndSelectRef(g, a, catalog)
+        }
         if (v == "@latest") {
             val latestVersion = fetchLatestVersion(g, a)
-            val reference = if (ref != null) {
-                resolveExplicitRef(ref!!)
-            } else {
-                suggestAndSelectRef(g, a, catalog)
-            }
             addCatalogEntry(latestVersion.g, latestVersion.a, reference, latestVersion.v)
         } else {
-            val reference = if (ref != null) {
-                resolveExplicitRef(ref!!)
-            } else {
-                suggestAndSelectRef(g, a, catalog)
-            }
             addCatalogEntry(g, a, reference,v)
         }
     }
