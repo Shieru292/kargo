@@ -186,7 +186,7 @@ class Add : SuspendingCliktCommand() {
         val selectedDoc = t.interactiveSelectList {
             title("Search results for $query")
             docs.forEach {
-                addEntry("${it.g}:${it.a}", TextColors.brightGreen("Latest: ${it.latestVersion}, Released at ${it.toInstant()}"))
+                addEntry("${it.g}:${it.a}", TextColors.brightGreen("  - Latest: ${it.latestVersion}, Released at ${it.toInstant()}\n"))
             }
         } ?: error("No package selected")
         val (g, a) = selectedDoc.split(":")
@@ -238,7 +238,7 @@ class Add : SuspendingCliktCommand() {
             title("Select a version reference")
             options.forEach {
                 if (catalog.versions.containsKey(it)) {
-                    addEntry(it, TextColors.gray(catalog.versions[it] ?: "Unknown Version"))
+                    addEntry(it, TextColors.gray("  - " + catalog.versions[it]))
                 } else {
                     addEntry(it)
                 }
