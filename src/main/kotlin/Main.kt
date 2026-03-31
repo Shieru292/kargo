@@ -204,8 +204,15 @@ class Add : SuspendingCliktCommand() {
     }
 
     private fun selectVersion(versions: List<String>): String {
-        return t.interactiveSelectList(versions, title = "Select a version")
-            ?: error("No version selected")
+        val selected = t.interactiveSelectList {
+            entries(versions)
+            addEntry("- Enter manually")
+            title("Select a version")
+        } ?: error("No version selected")
+        if (selected == "- Enter manually") {
+            return t.prompt("Please enter the version manually:") ?: error("No version entered")
+        }
+        return selected
     }
 
     private fun resolveExplicitRef(ref: String): String {
