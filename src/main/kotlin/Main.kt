@@ -183,7 +183,10 @@ class Add : SuspendingCliktCommand() {
             docs.forEach {
                 addEntry("${it.g}:${it.a}", TextColors.brightGreen("  - Latest: ${it.latestVersion}, Released at ${it.toInstant()}\n"))
             }
-        } ?: error("No package selected")
+        } ?: run {
+            echo("No package selected", err = true)
+            throw Abort()
+        }
         val (g, a) = selectedDoc.split(":")
         handleTwoParts(listOf(g, a), catalog)
     }
@@ -203,9 +206,15 @@ class Add : SuspendingCliktCommand() {
             entries(versions)
             addEntry("- Enter manually")
             title("Select a version")
-        } ?: error("No version selected")
+        } ?: run {
+            echo("No version selected", err = true)
+            throw Abort()
+        }
         if (selected == "- Enter manually") {
-            return t.prompt("Please enter the version manually:") ?: error("No version entered")
+            return t.prompt("Please enter the version manually:") ?: run {
+                echo("No version entered", err = true)
+                throw Abort()
+            }
         }
         return selected
     }
@@ -239,11 +248,17 @@ class Add : SuspendingCliktCommand() {
                 }
             }
             addEntry("- Choose your own")
-        } ?: error("No version reference selected")
+        } ?: run {
+            echo("No version reference selected", err = true)
+            throw Abort()
+        }
 
         return if (selected == "- Choose your own") {
             t.prompt("What version reference name do you want to use for this package?")
-                ?: error("No version reference name provided")
+                ?: run {
+                    echo("No version reference name provided", err = true)
+                    throw Abort()
+                }
         } else {
             selected
         }
