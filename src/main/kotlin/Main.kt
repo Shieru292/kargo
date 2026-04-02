@@ -202,6 +202,13 @@ class Add : SuspendingCliktCommand() {
     }
 
     private fun selectVersion(versions: List<String>): String {
+        if (versions.isEmpty()) {
+            echo("No versions found for this package. This occurs when the package is not available in Maven Central.", err = true)
+            return t.prompt("Please enter the version manually").asNonEmpty() ?: run {
+                echo("No version entered", err = true)
+                throw Abort()
+            }
+        }
         val selected = t.interactiveSelectList {
             entries(versions)
             addEntry("- Enter manually")
@@ -211,7 +218,7 @@ class Add : SuspendingCliktCommand() {
             throw Abort()
         }
         if (selected == "- Enter manually") {
-            return t.prompt("Please enter the version manually:") ?: run {
+            return t.prompt("Please enter the version manually").asNonEmpty() ?: run {
                 echo("No version entered", err = true)
                 throw Abort()
             }
@@ -315,6 +322,10 @@ class Add : SuspendingCliktCommand() {
         gradleImplementationSnippet(a)
     }
 
+}
+
+private fun String?.asNonEmpty(): String? {
+    return this?.takeIf { it.isNotEmpty() } ?: run { null }
 }
 
 suspend fun main(args: Array<String>) = Kargo().subcommands(Init(), Add()).main(args)
