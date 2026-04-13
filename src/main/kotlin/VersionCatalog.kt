@@ -41,16 +41,6 @@ data class Plugin(val id: String, val version: Version)
 
 class Resolver(val catalog: VersionCatalog) {
     fun resolveVersion(version: String): String? = catalog.versions[version]
-    fun toModuleString(module: Module): String = "${module.group}:${module.name}:${resolveVersion(module.version.ref)}"
-    fun checkUsedVersion(groupId: String, artifactId: String): String? {
-        val versionRefs = suggestVersionRefs(groupId, artifactId)
-        versionRefs.forEach {
-            if (catalog.versions.containsKey(it)) {
-                return it
-            }
-        }
-        return null
-    }
     fun suggestVersionRefs(groupId: String, artifactId: String): Set<String> {
         val versionRefs = mutableSetOf<String>()
 
