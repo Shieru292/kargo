@@ -4,6 +4,8 @@ import com.akuleshov7.ktoml.Toml
 import com.akuleshov7.ktoml.annotations.TomlInlineTable
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import java.io.File
 
 @Serializable
 data class VersionCatalog(
@@ -11,6 +13,16 @@ data class VersionCatalog(
     val libraries: Map<String, Module>,
     val plugins: Map<String, Plugin>
 ) {
+    fun save(file: File) {
+        val toml = buildString {
+            val rawToml = Toml.encodeToString(this@VersionCatalog)
+            appendLine("# Kargo generated file: don't edit manually!")
+            appendLine()
+            append(rawToml)
+        }
+        file.writeText(toml)
+    }
+
     companion object {
         fun parse(toml: String): VersionCatalog = Toml.decodeFromString(toml)
     }
