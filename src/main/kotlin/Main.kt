@@ -324,8 +324,52 @@ class Add : SuspendingCliktCommand() {
 
 }
 
+class Remove : SuspendingCliktCommand() {
+    override fun help(context: Context) = "Remove a dependency from the version catalog."
+
+    private val config by requireObject<KargoContext>()
+    private val alias by argument("alias", help = "The alias of the library to remove.")
+
+    override suspend fun run() {
+        val catalog = getCatalog(config.versionCatalog)
+        val module = catalog.libraries[alias] ?: run {
+            t.println("${TextColors.brightRed("Error:")} Library with alias '$alias' not found in the version catalog.", stderr = true)
+            throw Abort()
+        }
+
+        val versionRef = module.version.ref
+        val newLibraries = catalog.libraries.filter { it.key != alias }
+        var newVersions = catalog.versions
+
+        val resolver = catalog.resolver()
+        if (!resolver.isVersionUsed(versionRef, excludeLibraryAlias = alias)) {
+            val currentVersion = resolver.resolveVersion(versionRef)
+            if (YesNoPrompt(
+                    "Version reference '$versionRef' ($currentVersion) is no longer used. Do you want to remove it too?",
+                    t,
+                    default = true
+                ).ask() == true
+            ) {
+                newVersions = catalog.versions.filter { it.key != versionRef }
+                t.println(TextColors.brightGreen("Removed version reference '$versionRef'."))
+            }
+        }
+
+        val newCatalog = VersionCatalog(newVersions, newLibraries, catalog.plugins)
+        val toml = buildString {
+            val rawToml = Toml.encodeToString(newCatalog)
+            appendLine("# Kargo generated file: don't edit manually!")
+            appendLine()
+            append(rawToml)
+        }
+        File(config.versionCatalog).writeText(toml)
+
+        t.println(TextColors.brightGreen("Removed library '$alias' from the version catalog."))
+    }
+}
+
 private fun String?.asNonEmpty(): String? {
     return this?.takeIf { it.isNotEmpty() } ?: run { null }
 }
 
-suspend fun main(args: Array<String>) = Kargo().subcommands(Init(), Add()).main(args)
+suspend fun main(args: Array<String>) = Kargo().subcommands(Init(), Add(), Remove()).main(args)

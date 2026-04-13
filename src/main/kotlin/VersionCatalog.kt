@@ -58,4 +58,18 @@ class Resolver(val catalog: VersionCatalog) {
 
         return versionRefs
     }
+
+    fun isVersionUsed(ref: String, excludeLibraryAlias: String? = null): Boolean {
+        catalog.libraries.forEach { (alias, module) ->
+            if (alias != excludeLibraryAlias && module.version.ref == ref) {
+                return true
+            }
+        }
+        catalog.plugins.values.forEach { plugin ->
+            if (plugin.version.ref == ref) {
+                return true
+            }
+        }
+        return false
+    }
 }

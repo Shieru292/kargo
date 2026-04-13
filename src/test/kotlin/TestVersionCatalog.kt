@@ -38,4 +38,20 @@ class TestVersionCatalog {
 
         assertEquals(expectedNames, names)
     }
+
+    @Test
+    fun testIsVersionUsed() {
+        val resolver = Resolver(VersionCatalog.parse(catalogToml))
+        // mylib is used by mylib, mylib2, and my-plugin
+        assert(resolver.isVersionUsed("mylib"))
+        assert(resolver.isVersionUsed("mylib", excludeLibraryAlias = "mylib"))
+        assert(resolver.isVersionUsed("mylib", excludeLibraryAlias = "mylib2"))
+        
+        // lib1 is only used by lib1
+        assert(resolver.isVersionUsed("lib1"))
+        assert(!resolver.isVersionUsed("lib1", excludeLibraryAlias = "lib1"))
+        
+        // non-existent ref
+        assert(!resolver.isVersionUsed("non-existent"))
+    }
 }
