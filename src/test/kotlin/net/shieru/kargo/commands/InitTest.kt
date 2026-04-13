@@ -5,15 +5,13 @@ import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.mordant.terminal.Terminal
 import com.github.ajalt.mordant.terminal.TerminalRecorder
 import kotlinx.coroutines.runBlocking
-import net.shieru.kargo.*
+import net.shieru.kargo.Kargo
+import net.shieru.kargo.t
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
-import java.lang.reflect.Field
-import java.lang.reflect.Modifier
 import kotlin.test.Test
-import kotlin.test.assertEquals
 
 class InitTest {
     @TempDir
