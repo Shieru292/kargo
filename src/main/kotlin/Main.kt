@@ -17,7 +17,7 @@ import java.io.File
 
 data class KargoContext(val versionCatalog: String)
 
-val t = Terminal()
+var t = Terminal()
 
 suspend fun getCatalog(path: String): VersionCatalog = withContext(Dispatchers.IO) {
     VersionCatalog.parse(File(path).readText())
