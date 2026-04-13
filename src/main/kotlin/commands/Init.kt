@@ -27,38 +27,39 @@ class Init : SuspendingCliktCommand() {
     override fun help(context: Context) = "Initialize a new Kargo configuration for this project."
 
     override suspend fun run() {
-        // Check current directory is a Gradle project
-        val gradleGroovy = File("settings.gradle")
-        val gradleKotlin = File("settings.gradle.kts")
+        try {
+            // Check current directory is a Gradle project
+            val gradleGroovy = File("settings.gradle")
+            val gradleKotlin = File("settings.gradle.kts")
 
-        if (!gradleGroovy.exists() && !gradleKotlin.exists() && check) {
-            t.println("Seems like current directory is not a Gradle project, aborting.", stderr = true)
-            return
-        }
-
-        // Check config file exists
-        val configFile = File(config.versionCatalog)
-        if (configFile.exists() && !force) {
-            if (YesNoPrompt(
-                    "Config file already exists at ${TextColors.brightRed(configFile.path)}, overwrite?",
-                    t,
-                    default = false
-                ).ask() == false
-            ) {
-                t.println("Config file already exists, aborting.", stderr = true)
+            if (!gradleGroovy.exists() && !gradleKotlin.exists() && check) {
+                t.println("Seems like current directory is not a Gradle project, aborting.", stderr = true)
                 return
             }
-            t.println(TextColors.yellow("Overwriting existing config file."))
-        }
-        
-        val newCatalog = VersionCatalog(emptyMap(), emptyMap(), emptyMap())
-        newCatalog.save(configFile)
 
-        println("Kargo version catalog created at ${configFile.path}.")
+            // Check config file exists
+            val configFile = File(config.versionCatalog)
+            if (configFile.exists() && !force) {
+                if (YesNoPrompt(
+                        "Config file already exists at ${TextColors.brightRed(configFile.path)}, overwrite?",
+                        t,
+                        default = false
+                    ).ask() == false
+                ) {
+                    t.println("Config file already exists, aborting.", stderr = true)
+                    return
+                }
+                t.println(TextColors.yellow("Overwriting existing config file."))
+            }
 
-        val codeSnippet = run {
-            val createSnippet = if (gradleGroovy.exists()) "kargo {" else "create(\"kargo\") {"
-            """
+            val newCatalog = VersionCatalog(emptyMap(), emptyMap(), emptyMap())
+            newCatalog.save(configFile)
+
+            println("Kargo version catalog created at ${configFile.path}.")
+
+            val codeSnippet = run {
+                val createSnippet = if (gradleGroovy.exists()) "kargo {" else "create(\"kargo\") {"
+                """
                 dependencyResolutionManagement {
                     versionCatalogs {
                         $createSnippet
@@ -67,13 +68,17 @@ class Init : SuspendingCliktCommand() {
                     }
                 }
             """.trimIndent()
+            }
+            println()
+            if (gradleGroovy.exists()) {
+                println("Please add the following to your settings.gradle:")
+            } else {
+                println("Please add the following to your settings.gradle.kts:")
+            }
+            t.println(TextColors.brightYellow(codeSnippet))
+        } catch (e: Exception) {
+            t.println("${TextColors.brightRed("Error:")} ${e.message}", stderr = true)
+            throw Abort()
         }
-        println()
-        if (gradleGroovy.exists()) {
-            println("Please add the following to your settings.gradle:")
-        } else {
-            println("Please add the following to your settings.gradle.kts:")
-        }
-        t.println(TextColors.brightYellow(codeSnippet))
     }
 }

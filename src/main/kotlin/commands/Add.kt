@@ -9,6 +9,8 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.mordant.input.interactiveSelectList
 import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.terminal.prompt
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import net.shieru.kargo.*
 import java.io.File
 
@@ -30,13 +32,20 @@ class Add : SuspendingCliktCommand() {
     private val mavenCentralClient = MavenCentralClient()
 
     override suspend fun run() {
-        val parts = dependency.split(":")
-        val catalog = getCatalog(config.versionCatalog)
+        try {
+            val parts = dependency.split(":")
+            val catalog = getCatalog(config.versionCatalog)
 
-        when (parts.size) {
-            3 -> handleThreeParts(parts, catalog)
-            2 -> handleTwoParts(parts, catalog)
-            1 -> handleOnePart(parts, catalog)
+            when (parts.size) {
+                3 -> handleThreeParts(parts, catalog)
+                2 -> handleTwoParts(parts, catalog)
+                1 -> handleOnePart(parts, catalog)
+            }
+        } catch (e: Abort) {
+            throw e
+        } catch (e: Exception) {
+            t.println("${TextColors.brightRed("Error:")} ${e.message}", stderr = true)
+            throw Abort()
         }
     }
 
@@ -49,16 +58,15 @@ class Add : SuspendingCliktCommand() {
         }
         if (v == "@latest") {
             val latestVersion = fetchLatestVersion(g, a)
-            addCatalogEntry(latestVersion.g, latestVersion.a, reference, latestVersion.v)
+            addCatalogEntry(g, a, reference, latestVersion.v)
         } else {
-            addCatalogEntry(g, a, reference,v)
+            addCatalogEntry(g, a, reference, v)
         }
     }
 
-    private suspend fun handleTwoParts(parts: List<String>, catalog: VersionCatalog) {
+    private suspend fun handleTwoParts(parts: List<String>, catalog: VersionCatalog) = coroutineScope {
         val (g, a) = parts
-        val versions = fetchVersions(g, a)
-        val preferredVersion by lazy { selectVersion(versions) }
+        val versionsDeferred = async { fetchVersions(g, a) }
 
         val reference = if (ref != null) {
             resolveExplicitRef(ref!!)
@@ -66,7 +74,13 @@ class Add : SuspendingCliktCommand() {
             suggestAndSelectRef(g, a, catalog)
         }
 
-        if (catalog.resolver().resolveVersion(reference) == null) {
+        val preferredVersion = if (catalog.resolver().resolveVersion(reference) == null) {
+            selectVersion(versionsDeferred.await())
+        } else {
+            null
+        }
+
+        if (preferredVersion != null) {
             addCatalogEntry(g, a, reference, preferredVersion)
         } else {
             addCatalogEntry(g, a, reference)
@@ -191,7 +205,16 @@ class Add : SuspendingCliktCommand() {
         t.println(TextColors.brightYellow(kotlinSnippet))
     }
 
+    private fun validateAlias(alias: String, name: String) {
+        if (!alias.matches(Regex("^[a-zA-Z][a-zA-Z0-9]*([._-][a-zA-Z0-9]+)*$"))) {
+            t.println("${TextColors.brightRed("Error:")} Invalid $name '$alias'. Only alphanumeric characters, dots, underscores, and hyphens are allowed, and it must start with a letter.", stderr = true)
+            throw Abort()
+        }
+    }
+
     suspend fun addCatalogEntry(g: String, a: String, ref: String, version: String? = null) {
+        validateAlias(a, "alias")
+        validateAlias(ref, "version reference")
         val initialCatalog = getCatalog(config.versionCatalog)
         val catalogWithVersion = if (!initialCatalog.versions.containsKey(ref)) {
             if (version == null) {

@@ -2,6 +2,7 @@ package net.shieru.kargo
 
 import io.ktor.client.*
 import io.ktor.client.engine.java.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import kotlinx.serialization.Serializable
@@ -36,15 +37,20 @@ data class MavenGavResponse(val numFound: Int, val docs: List<MavenGavDocument>)
 @Serializable
 data class MavenGavDocument(
     val id: String, val g: String, val a: String, val v: String, val timestamp: Long
-) {
-    fun toInstant(): Instant = Instant.fromEpochMilliseconds(timestamp)
-}
+)
 
 
 class MavenCentralClient {
-    val client = HttpClient(Java)
-    private val json = Json {
-        ignoreUnknownKeys = true
+    companion object {
+        val client = HttpClient(Java) {
+            install(HttpTimeout) {
+                requestTimeoutMillis = 10000
+                connectTimeoutMillis = 10000
+            }
+        }
+        private val json = Json {
+            ignoreUnknownKeys = true
+        }
     }
 
     private val baseUrl = "https://central.sonatype.com"
@@ -67,9 +73,5 @@ class MavenCentralClient {
             parameter("sort", "v desc")
         }.bodyAsText()
         return json.decodeFromString(MavenGavAPIResponse.serializer(), responseText)
-    }
-
-    fun close() {
-        client.close()
     }
 }

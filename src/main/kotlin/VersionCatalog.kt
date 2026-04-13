@@ -14,13 +14,13 @@ data class VersionCatalog(
     val plugins: Map<String, Plugin>
 ) {
     fun save(file: File) {
-        val toml = buildString {
-            val rawToml = Toml.encodeToString(this@VersionCatalog)
-            appendLine("# Kargo generated file: don't edit manually!")
-            appendLine()
-            append(rawToml)
+        file.parentFile?.mkdirs()
+        file.bufferedWriter().use { writer ->
+            writer.write("# Kargo generated file: don't edit manually!")
+            writer.newLine()
+            writer.newLine()
+            writer.write(Toml.encodeToString(this@VersionCatalog))
         }
-        file.writeText(toml)
     }
 
     companion object {

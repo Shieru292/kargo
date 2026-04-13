@@ -2,11 +2,13 @@ package net.shieru.kargo
 
 import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.command.main
+import com.github.ajalt.clikt.core.Abort
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.obj
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.terminal.Terminal
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -20,7 +22,17 @@ data class KargoContext(val versionCatalog: String)
 var t = Terminal()
 
 suspend fun getCatalog(path: String): VersionCatalog = withContext(Dispatchers.IO) {
-    VersionCatalog.parse(File(path).readText())
+    val file = File(path)
+    if (!file.exists()) {
+        t.println("${TextColors.brightRed("Error:")} Version catalog file not found at $path. Please run 'init' first.", stderr = true)
+        throw Abort()
+    }
+    try {
+        VersionCatalog.parse(file.readText())
+    } catch (e: Exception) {
+        t.println("${TextColors.brightRed("Error:")} Failed to parse version catalog at $path: ${e.message}", stderr = true)
+        throw Abort()
+    }
 }
 
 fun VersionCatalog.resolver(): Resolver = Resolver(this)
