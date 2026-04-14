@@ -13,6 +13,7 @@ import com.github.ajalt.mordant.terminal.Terminal
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.shieru.kargo.commands.Add
+import net.shieru.kargo.commands.Generate
 import net.shieru.kargo.commands.Init
 import net.shieru.kargo.commands.Remove
 import java.io.File
@@ -55,4 +56,4 @@ class Kargo : SuspendingCliktCommand() {
     }
 }
 
-suspend fun main(args: Array<String>) = Kargo().subcommands(Init(), Add(), Remove()).main(args)
+suspend fun main(args: Array<String>) = Kargo().subcommands(Init(), Add(), Remove(), Generate()).main(args)

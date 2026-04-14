@@ -185,9 +185,6 @@ class Add : SuspendingCliktCommand() {
     }
 
     private fun gradleImplementationSnippet(alias: String) {
-        fun String.toAccessor() =
-            replace(":", ".").replace("-", ".").replace("_", ".")
-
         val groovySnippet = """
             dependencies {
                 implementation kargo.${alias.toAccessor()}

@@ -39,6 +39,8 @@ data class Version(val ref: String)
 @Serializable
 data class Plugin(val id: String, val version: Version)
 
+fun String.toAccessor() = replace(":", ".").replace("-", ".").replace("_", ".")
+
 class Resolver(val catalog: VersionCatalog) {
     fun resolveVersion(version: String): String? = catalog.versions[version]
     fun suggestVersionRefs(groupId: String, artifactId: String): Set<String> {
