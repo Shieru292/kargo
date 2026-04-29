@@ -1,27 +1,25 @@
-# Kargo: Gradle version catalog manager
+# Kargo: Gradle バージョンカタログ管理ツール
 
-Gradle バージョンカタログを管理するシンプルなCLIツール。
+Gradle のバージョンカタログを管理するシンプルなCLIツール。
 
 ## インストール
 
-[Releases](https://github.com/Shieru292/kargo/releases) に、Windows / macOS / Linux 用ビルドがあります。
+Windows, macOS, Linux用のビルド済みバイナリが利用できます: [Releases](https://github.com/Shieru292/kargo/releases)
 
-## 使い方
+## 使用法
 
 ### 初期化
 
-まず、Kargo用のバージョンカタログを作成し、プロジェクトに適用する必要があります。
-組み込みの初期化コマンドを使用できます。
-
+はじめに、Kargoのバージョンカタログを作成し、プロジェクトに適用する必要があります。  
+組み込みの`init`コマンドを利用できます:
 ```bash
 kargo init
 
-# または、バージョンカタログへのパスを指定できます
+# バージョンカタログへのカスタムパスを設定できます
 kargo -c path/to/kargo.versions.toml init
 ```
 
-次に、`settings.gradle.kts` に、作成したバージョンカタログを適用する設定を適用します。
-
+次に、以下のコードを `settings.gradle.kts` に追加して、作成されたバージョンカタログを適用します:
 ```kotlin
 dependencyResolutionManagement {
     versionCatalogs {
@@ -34,24 +32,22 @@ dependencyResolutionManagement {
 
 ### 依存関係を追加する
 
-`kargo add` を使用して、プロジェクトに依存関係を追加します。
-
+`kargo add`を使用して、プロジェクトに依存関係を追加します。
 ```bash
-# 明示的にバージョンを指定
-kargo add io.ktor:ktor-client-core:3.2.0
+# バージョンを指定する
+kargo add io.ktor:ktor-client-core:3.4.2
 
-# @latest キーワードを使用すると、パッケージの最新バージョンを自動で解決します。
+# @latest キーワードを使うと、最新バージョンを自動で取得して解決します。
 kargo add io.ktor:ktor-client-core:@latest
 
 # バージョンが省略されると、kargoはどのバージョンを使用するか尋ねます。
 kargo add io.ktor:ktor-client-core
 
-# 単一の検索キーワードを使用して、Maven Centralを検索することもできます。
+# 単一キーワードを使用すると、Maven Centralを検索します。
 kargo add ktor-client-core
 ```
 
-kargoはバージョンの参照名を自動で提案し、どの参照名を使用するか尋ねます。
-
+Kargoはバージョン参照名を提案し、どれを使用するか尋ねます:
 ```
 Select a version reference
 ❯ ktor
@@ -61,14 +57,15 @@ Select a version reference
 ↑ up • ↓ down • enter select
 ```
 
-全てが明確になると、kargoはバージョンカタログにライブラリとバージョンの情報を記載し、`build.gradle(.kts)`に適用できるコード スニペットを提供します。
-
+全てが明確になると、Kargoはライブラリとバージョン情報をバージョンカタログに書き込み、  
+`build.gradle(.kts)`に追加するコードスニペットを提供します。
 ```
-Added io.ktor:ktor-client-core (ref: ktor, version: 3.2.0) to the version catalog.
+Added io.ktor:ktor-client-core (ref: ktor, version: 3.4.2) to the version catalog.
 To use this dependency, add the following snippet to your build.gradle(.kts):
+
 build.gradle (Groovy):
 dependencies {
-    implementation "kargo.ktor.client.core"
+    implementation kargo.ktor.client.core
 }
 
 build.gradle.kts (Kotlin):
@@ -77,12 +74,18 @@ dependencies {
 }
 ```
 
-`-r` (`--ref`) 引数を使用して、参照名を自動で適用することもできます:
-`kargo add io.ktor:ktor-client-core -r ktor`
+`-r` (`--ref`) を使用すると、参照名を自動で設定します。
+```bash
+kargo add io.ktor:ktor-client-core -r ktor
+```
 
-`@latest`と組み合わせることで、Quiet Modeのような形で動作することもできます:
-`kargo add io.ktor:ktor-client-core:@latest -r ktor`
+`@latest`と組み合わせると、quiet modeとして動作します。  
+ドキュメントを書く際に便利です。
+```bash
+kargo add io.ktor:ktor-client-core:@latest -r ktor
+```
 
-## Kargoを使用しているプロジェクト
+## このプロジェクトはKargoを使用しています！
 
-まさに、このプロジェクトが使用しています！`gradle/kargo.versions.toml` を参照してください！
+このプロジェクトは、自身のバージョンをkargoで管理しています。  
+`gradle/kargo.versions.toml` をご確認ください！
